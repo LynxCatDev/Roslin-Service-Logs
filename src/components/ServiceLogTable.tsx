@@ -6,8 +6,9 @@ import { ServiceType } from '../types';
 import { format } from 'date-fns';
 import * as Label from '@radix-ui/react-label';
 import * as Select from '@radix-ui/react-select';
+import { Table } from '@radix-ui/themes';
 import { Pencil1Icon, TrashIcon, ChevronDownIcon } from '@radix-ui/react-icons';
-import { deleteLog, saveLogs } from '../utils/localStorage';
+import { deleteLog } from '../utils/localStorage';
 import { ConfirmDialog } from './ConfirmDialog';
 
 interface Props {
@@ -172,95 +173,66 @@ export function ServiceLogTable({ onEdit }: Props) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Provider ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Service Order
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Car ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Odometer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Engine Hours
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Start Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  End Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => onEdit(log)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Edit"
-                      >
-                        <Pencil1Icon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(log.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {log.providerId}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {log.serviceOrder}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {log.carId}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getTypeBadgeColor(
-                        log.type,
-                      )}`}
+        <Table.Root variant="surface">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Provider ID</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Service Order</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Car ID</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Type</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Odometer</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Engine Hours</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Start Date</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>End Date</Table.ColumnHeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {filteredLogs.map((log) => (
+              <Table.Row key={log.id}>
+                <Table.Cell>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onEdit(log)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit"
                     >
-                      {log.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {log.odometer.toLocaleString()} mi
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {log.engineHours}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {format(new Date(log.startDate), 'MMM dd, yyyy')}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {format(new Date(log.endDate), 'MMM dd, yyyy')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      <Pencil1Icon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(log.id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Delete"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </Table.Cell>
+                <Table.Cell>{log.providerId}</Table.Cell>
+                <Table.Cell>{log.serviceOrder}</Table.Cell>
+                <Table.Cell>{log.carId}</Table.Cell>
+                <Table.Cell>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getTypeBadgeColor(
+                      log.type,
+                    )}`}
+                  >
+                    {log.type}
+                  </span>
+                </Table.Cell>
+                <Table.Cell>{log.odometer.toLocaleString()} mi</Table.Cell>
+                <Table.Cell>{log.engineHours}</Table.Cell>
+                <Table.Cell>
+                  {format(new Date(log.startDate), 'MMM dd, yyyy')}
+                </Table.Cell>
+                <Table.Cell>
+                  {format(new Date(log.endDate), 'MMM dd, yyyy')}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
       )}
 
       <ConfirmDialog
