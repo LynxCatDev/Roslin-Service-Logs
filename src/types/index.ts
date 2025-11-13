@@ -13,8 +13,25 @@
   updatedAt: string;
 }
 
-export enum ServiceType {
-  PLANNED = 'Planned',
-  UNPLANNED = 'Unplanned',
-  EMERGENCY = 'Emergency',
+export interface Draft {
+  id: string;
+  providerId: string;
+  serviceOrder: string;
+  carId: string;
+  odometer: string;
+  engineHours: string;
+  startDate: string;
+  endDate: string;
+  type: ServiceType;
+  serviceDescription: string;
+  lastSaved: string;
+  isSaved: boolean;
 }
+
+export const ServiceType = {
+  PLANNED: 'Planned',
+  UNPLANNED: 'Unplanned',
+  EMERGENCY: 'Emergency',
+} as const;
+
+export type ServiceType = (typeof ServiceType)[keyof typeof ServiceType];

@@ -8,6 +8,8 @@ import type { ServiceLog } from '../types';
 import { ServiceType } from '../types';
 import { useAppDispatch } from '../store/hooks';
 import { updateServiceLog } from '../store/serviceLogSlice';
+import { saveLog } from '../utils/localStorage';
+import { getCurrentTimestamp } from '../utils/dateUtils';
 
 interface Props {
   log: ServiceLog | null;
@@ -51,20 +53,22 @@ export function EditServiceLogDialog({ log, open, onOpenChange }: Props) {
     enableReinitialize: true,
     onSubmit: (values) => {
       if (log) {
-        dispatch(
-          updateServiceLog({
-            ...log,
-            providerId: values.providerId,
-            serviceOrder: values.serviceOrder,
-            carId: values.carId,
-            odometer: Number(values.odometer),
-            engineHours: Number(values.engineHours),
-            startDate: values.startDate,
-            endDate: values.endDate,
-            type: values.type as ServiceType,
-            serviceDescription: values.serviceDescription,
-          }),
-        );
+        const updatedLog: ServiceLog = {
+          ...log,
+          providerId: values.providerId,
+          serviceOrder: values.serviceOrder,
+          carId: values.carId,
+          odometer: Number(values.odometer),
+          engineHours: Number(values.engineHours),
+          startDate: values.startDate,
+          endDate: values.endDate,
+          type: values.type as ServiceType,
+          serviceDescription: values.serviceDescription,
+          updatedAt: getCurrentTimestamp(),
+        };
+
+        dispatch(updateServiceLog(updatedLog));
+        saveLog(updatedLog);
         onOpenChange(false);
       }
     },

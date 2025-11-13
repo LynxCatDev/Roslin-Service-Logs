@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import * as Label from '@radix-ui/react-label';
 import * as Select from '@radix-ui/react-select';
 import { Pencil1Icon, TrashIcon, ChevronDownIcon } from '@radix-ui/react-icons';
+import { deleteLog, saveLogs } from '../utils/localStorage';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface Props {
   onEdit: (log: ServiceLog) => void;
@@ -20,6 +22,8 @@ export function ServiceLogTable({ onEdit }: Props) {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<ServiceType | 'all'>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<string | null>(null);
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
@@ -35,9 +39,16 @@ export function ServiceLogTable({ onEdit }: Props) {
     return matchesSearch && matchesStartDate && matchesEndDate && matchesType;
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this service log?')) {
-      dispatch(deleteServiceLog(id));
+  const handleDelete = async (id: string) => {
+    setLogToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (logToDelete) {
+      dispatch(deleteServiceLog(logToDelete));
+      await deleteLog(logToDelete);
+      setLogToDelete(null);
     }
   };
 
@@ -251,6 +262,17 @@ export function ServiceLogTable({ onEdit }: Props) {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Service Log"
+        description="Are you sure you want to delete this service log? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

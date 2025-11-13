@@ -14,6 +14,9 @@ const serviceLogSlice = createSlice({
   name: 'serviceLogs',
   initialState,
   reducers: {
+    setServiceLogs: (state, action: PayloadAction<ServiceLog[]>) => {
+      state.logs = action.payload;
+    },
     addServiceLog: (state, action: PayloadAction<ServiceLog>) => {
       state.logs.push(action.payload);
     },
@@ -29,6 +32,10 @@ const serviceLogSlice = createSlice({
   },
 });
 
-export const { addServiceLog, updateServiceLog, deleteServiceLog } =
-  serviceLogSlice.actions;
+export const {
+  setServiceLogs,
+  addServiceLog,
+  updateServiceLog,
+  deleteServiceLog,
+} = serviceLogSlice.actions;
 export default serviceLogSlice.reducer;
