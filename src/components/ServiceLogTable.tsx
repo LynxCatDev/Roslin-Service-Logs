@@ -21,7 +21,7 @@ export function ServiceLogTable({ onEdit }: Props) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [startDateFilter, setStartDateFilter] = useState('');
-  const [endDateFilter, setEndDateFilter] = useState('');
+  const [endDateFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<ServiceType | 'all'>('all');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState<string | null>(null);
