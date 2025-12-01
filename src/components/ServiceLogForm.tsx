@@ -165,26 +165,6 @@ export function ServiceLogForm() {
       clearTimeout(autoSaveTimerRef.current);
     }
 
-    autoSaveTimerRef.current = setTimeout(() => {
-      const draft: Draft = {
-        id: currentDraftId,
-        providerId: formik.values.providerId,
-        serviceOrder: formik.values.serviceOrder,
-        carId: formik.values.carId,
-        odometer: formik.values.odometer,
-        engineHours: formik.values.engineHours,
-        startDate: formik.values.startDate,
-        endDate: formik.values.endDate,
-        type: formik.values.type as ServiceType,
-        serviceDescription: formik.values.serviceDescription,
-        lastSaved: getCurrentTimestamp(),
-        isSaved: true,
-      };
-
-      // dispatch(updateDraft(draft));
-      lastSavedValuesRef.current = currentSnapshot;
-    }, 300);
-
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
