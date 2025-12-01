@@ -8,7 +8,6 @@ import type { ServiceLog } from '../types';
 import { ServiceType } from '../types';
 import { useAppDispatch } from '../store/hooks';
 import { updateServiceLog } from '../store/serviceLogSlice';
-import { saveLog } from '../utils/localStorage';
 import { getCurrentTimestamp } from '../utils/dateUtils';
 
 interface Props {
@@ -68,7 +67,6 @@ export function EditServiceLogDialog({ log, open, onOpenChange }: Props) {
         };
 
         dispatch(updateServiceLog(updatedLog));
-        saveLog(updatedLog);
         onOpenChange(false);
       }
     },

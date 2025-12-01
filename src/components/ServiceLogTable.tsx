@@ -8,7 +8,6 @@ import * as Label from '@radix-ui/react-label';
 import * as Select from '@radix-ui/react-select';
 import { Table } from '@radix-ui/themes';
 import { Pencil1Icon, TrashIcon, ChevronDownIcon } from '@radix-ui/react-icons';
-import { deleteLog } from '../utils/localStorage';
 import { ConfirmDialog } from './ConfirmDialog';
 
 interface Props {
@@ -48,7 +47,6 @@ export function ServiceLogTable({ onEdit }: Props) {
   const confirmDelete = async () => {
     if (logToDelete) {
       dispatch(deleteServiceLog(logToDelete));
-      await deleteLog(logToDelete);
       setLogToDelete(null);
     }
   };

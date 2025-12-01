@@ -19,14 +19,6 @@ import {
   getTomorrowString,
 } from '../utils/dateUtils';
 import {
-  saveDraft,
-  saveLog,
-  deleteDraft as deleteDraftLS,
-  clearAllDrafts as clearAllDraftsLS,
-  saveDrafts,
-  saveLogs,
-} from '../utils/localStorage';
-import {
   addDraft,
   updateDraft,
   deleteDraft,
@@ -47,6 +39,8 @@ interface FormValues {
   type: string;
   serviceDescription: string;
 }
+
+const serializeFormValues = (values: FormValues) => JSON.stringify(values);
 
 const validationSchema = Yup.object({
   providerId: Yup.string().required('Provider ID is required'),
@@ -71,14 +65,13 @@ export function ServiceLogForm() {
   // Redux state
   const currentDraftId = useAppSelector((state) => state.drafts.currentDraftId);
   const drafts = useAppSelector((state) => state.drafts.drafts);
-  const logs = useAppSelector((state) => state.serviceLogs.logs);
   const saveStatus = useAppSelector((state) => state.drafts.saveStatus);
 
   // Local state
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [clearAllConfirmOpen, setClearAllConfirmOpen] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedValuesRef = useRef<string>('');
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -111,51 +104,62 @@ export function ServiceLogForm() {
       };
 
       dispatch(addServiceLog(serviceLog));
-      saveLog(serviceLog);
 
       // Clean up draft after creating service log
       if (currentDraftId) {
         dispatch(deleteDraft(currentDraftId));
-        deleteDraftLS(currentDraftId);
         dispatch(setCurrentDraftId(null));
+        // dispatch(setSaveStatus('idle'));
+        lastSavedValuesRef.current = '';
       }
 
       resetForm();
     },
   });
-
-  // Sync Redux state to localStorage
-  useEffect(() => {
-    saveDrafts(drafts);
-  }, [drafts]);
-
-  useEffect(() => {
-    saveLogs(logs);
-  }, [logs]);
+  const formikSetValues = formik.setValues;
 
   // Load draft when selected
   useEffect(() => {
-    if (currentDraftId) {
-      const draft = drafts.find((d) => d.id === currentDraftId);
-      if (draft) {
-        formik.setValues({
-          providerId: draft.providerId,
-          serviceOrder: draft.serviceOrder,
-          carId: draft.carId,
-          odometer: draft.odometer,
-          engineHours: draft.engineHours,
-          startDate: draft.startDate,
-          endDate: draft.endDate,
-          type: draft.type as unknown as string,
-          serviceDescription: draft.serviceDescription,
-        });
-      }
+    if (!currentDraftId) return;
+
+    const draft = drafts.find((d) => d.id === currentDraftId);
+    if (!draft) return;
+
+    const draftValues: FormValues = {
+      providerId: draft.providerId,
+      serviceOrder: draft.serviceOrder,
+      carId: draft.carId,
+      odometer: draft.odometer,
+      engineHours: draft.engineHours,
+      startDate: draft.startDate,
+      endDate: draft.endDate,
+      type: draft.type as unknown as string,
+      serviceDescription: draft.serviceDescription,
+    };
+
+    const draftSnapshot = serializeFormValues(draftValues);
+
+    if (lastSavedValuesRef.current === draftSnapshot) {
+      return;
     }
-  }, [currentDraftId, drafts]);
+
+    formikSetValues(draftValues);
+    lastSavedValuesRef.current = draftSnapshot;
+    // dispatch(setSaveStatus('saved'));
+  }, [currentDraftId, drafts, dispatch, formikSetValues]);
 
   // Debounced auto-save
   useEffect(() => {
-    if (!currentDraftId) return;
+    if (!currentDraftId) {
+      lastSavedValuesRef.current = '';
+      return undefined;
+    }
+
+    const currentSnapshot = serializeFormValues(formik.values);
+
+    if (lastSavedValuesRef.current === currentSnapshot) {
+      return undefined;
+    }
 
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -177,21 +181,13 @@ export function ServiceLogForm() {
         isSaved: true,
       };
 
-      dispatch(updateDraft(draft));
-      saveDraft(draft);
-
-      // Clear any existing status timer
-      if (saveStatusTimerRef.current) {
-        clearTimeout(saveStatusTimerRef.current);
-      }
+      // dispatch(updateDraft(draft));
+      lastSavedValuesRef.current = currentSnapshot;
     }, 300);
 
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
-      }
-      if (saveStatusTimerRef.current) {
-        clearTimeout(saveStatusTimerRef.current);
       }
     };
   }, [formik.values, currentDraftId, dispatch]);
@@ -229,27 +225,29 @@ export function ServiceLogForm() {
     };
 
     dispatch(addDraft(draft));
-    saveDraft(draft);
     dispatch(setCurrentDraftId(draftId));
+    lastSavedValuesRef.current = serializeFormValues(formik.values);
     dispatch(setSaveStatus('saving'));
 
     setTimeout(() => {
       dispatch(setSaveStatus('saved'));
-    }, 300);
+    }, 500);
   };
 
   const handleDeleteDraft = () => {
     if (!currentDraftId) return;
     dispatch(deleteDraft(currentDraftId));
-    deleteDraftLS(currentDraftId);
     dispatch(setCurrentDraftId(null));
+    dispatch(setSaveStatus('idle'));
+    lastSavedValuesRef.current = '';
     formik.resetForm();
   };
 
   const handleClearAllDrafts = () => {
     dispatch(clearAllDrafts());
-    clearAllDraftsLS();
     dispatch(setCurrentDraftId(null));
+    dispatch(setSaveStatus('idle'));
+    lastSavedValuesRef.current = '';
     formik.resetForm();
   };
 
@@ -290,7 +288,11 @@ export function ServiceLogForm() {
         {/* Status Bar */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-200">
           <div className="text-sm text-gray-600">
-            {currentDraftId ? 'Unsaved draft' : 'No active draft'}
+            {currentDraftId
+              ? saveStatus === 'saved'
+                ? ''
+                : 'Saving draft...'
+              : 'No active draft'}
           </div>
           <div className="flex items-center gap-2">
             {saveStatus === 'saving' && (
